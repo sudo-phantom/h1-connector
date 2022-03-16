@@ -1,5 +1,7 @@
 
+import string
 from matplotlib.pyplot import pause
+from numpy import not_equal
 import requests
 import json
 from requests.auth import  HTTPBasicAuth
@@ -18,7 +20,7 @@ args = parser.parse_args()
 #build api auth
 username = args.user
 API_ENDPOINT = 'https://api.hackerone.com/v1'
-reports = '/reports'
+reports = f"/reports/"
 filter = f"?filter[program][]={args.filter}"
 
 API_KEY = args.api_key
@@ -40,29 +42,58 @@ class get_reports():
         except KeyError:
             print("most likely auth error")
             pause
-        file = open('output.json', 'w')
-        file.write(str(data))
-        file.close()
-        base = data
-        top = len(base)
+        if args.output:    
+            file = open('output.json', 'w')
+            file.write(str(response))
+            file.close()
+            
+        else:
+            pass
+
         i = 0
         data_set = []
-        while i is not top:
-            link = data[i]
+        base = len(data)
+        while i is not base:
+            try: 
+                link = data[i]
+            except IndexError:
+                pass
             i = i + 1
             data_set.append(link)
             id = link['id']
             title = link['attributes']['title']
-            state = link['attributes']['state']
-            date_created = link['attributes']['created_at']
-            severity = link['relationships']['severity']['data']['attributes']['rating']
+            try:
+                state = link['attributes']['state']
+            except KeyError:
+                state = "No data found" 
+            try:
+                date_created = link['attributes']['created_at']
+            except KeyError:
+                date_created = "No data found"
+            try:
+                severity = link['relationships']['severity']['data']['attributes']['rating']
+            except KeyError:
+                severity = "No data found"
+            try:
+                reporter = link['relationships']['reporter']['data']['attributes']['username']
+            except KeyError:
+                reporter = "No data found"
+            try:
+                weakness = link['relationships']['weakness']['data']['attributes']['name']
+            except KeyError:
+                weakness = "No data found"
+            try:
+                payment = link['relationships']['bounties']['data']
+            except KeyError:
+                payment = "No data found"
+        
             try:
                 a_identifier = link['relationships']['structured_scope']['data']['attributes']['asset_identifier']
             except KeyError:
-                a_identifier = "NULL"
+                a_identifier = "No data found"
             print("__________________________________\n")
-            print(f"ID: {id}\t Severity:\t{severity} \nURL:\t{a_identifier}\nTitle: {title}\nState: {state}\tDate Created: {date_created}\n\n\n")
-           
+            print(f"ID: {id}\t Severity:\t{severity} \nURL:\t{a_identifier}\nTitle: {title}\nReporter: {reporter}\nState: {state}\tDate Created: {date_created}\nWeakness: {weakness}\nPayout: {payment}\n")
+
 
 if __name__ == '__main__':
     get_reports()
