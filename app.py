@@ -1,7 +1,3 @@
-
-import string
-from matplotlib.pyplot import pause
-from numpy import not_equal
 import requests
 import json
 from requests.auth import  HTTPBasicAuth
